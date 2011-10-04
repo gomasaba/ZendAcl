@@ -1,0 +1,14 @@
+h1. Simple Acl by Zend Acl for Cakephp2
+
+cakephpでのアクセスコントロールを簡単に使えるようにするプラグイン
+
+デフォルトの動作　all denly
+
+admin　は　all　allow
+
+のテスト。。。
+
+
+
+
+
