@@ -4,11 +4,53 @@ cakephpでのアクセスコントロールを簡単に使えるようにする�
 
 デフォルトの動作　all denly
 
-admin　は　all　allow
+ロールのadmin　は　全部　allow
 
-のテスト。。。
+パーミッションの割り当て例）
+
+<pre>
+	; Define permissions for role based ACL powered by Zend Framework
+	; Usage: controller[action] = allow
+	[user]
+	;page controller
+	pages[display]		= allow
+	;users controller
+	users[login]		= allow
+	users[logout]		= allow
+	users[view]			= allow
+	;posts controller
+	posts[index]	= allow
+	posts[view]	= allow
+	posts[edit]	= allow
+
+	[manager:user]
+	posts[view] = deny
+</pre>
 
 
+h2. 使い方
 
+1.
+APP/Config/role.ini　ファイルを作成
 
+2.APP/Config/bootstrap.php
+<pre>
+CakePlugin::load('ZendAcl',array('bootstrap'=>true));	
+</pre>
 
+3.AppController.php
+
+<pre>
+	class AppController extends Controller {
+
+		public $components = array('Session','Auth','ZendAcl.Permission');
+
+		public function beforeFilter() {
+			if($this->Auth->loggedIn()){
+				$this->Permission->isAllowed(AuthComponent::user('role')); //←例 role.iniのロール名を渡す
+			}
+			parent::beforeFilter();
+		}
+
+	}
+</pre>

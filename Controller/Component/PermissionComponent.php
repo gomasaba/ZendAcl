@@ -2,24 +2,24 @@
 /**
  * INI based Simple Permissions Component for CakePHP 2.0
  *
- * @author 	milds.net
+ * @author 	ohta takayuki
  * @version	1.0
  * @requires Zend Framework ACL component v.1.11
  * @license  http://www.opensource.org/licenses/mit-license.php The MIT License
- * 
- * ALL Role Default / Allow
- * 
- * ALL Rsourse Denied
- * 
  *
- * Automatic Current URI Resource Attachement 
- * 
+ * ALL Role Default / Allow
+ *
+ * ALL Rsourse Denied
+ *
+ *
+ * Automatic Current URI Resource Attachement
+ *
  * eg). request['controller']=>'users',request['action']=>'login'
- *  
+ *
  *      resource_id = users_login
- * 
+ *
  * You should setting role.ini allow
- * 
+ *
  * But admin Roll ALL Request allow...
  */
 
@@ -38,6 +38,7 @@ class PermissionComponent extends Component  {
 	public $resources;
 	public $roles;
 	public $debug = 0;
+
 
 	/**
 	 * __construct
@@ -68,7 +69,7 @@ class PermissionComponent extends Component  {
 	}
 	/**
 	 * Get Resourse ID
-	 * 
+	 *
 	 */
 	private function getResourse(){
 		$id = $this->controller->request->params['controller'].'_'.$this->controller->request->params['action'];
@@ -100,7 +101,7 @@ class PermissionComponent extends Component  {
 		return;
 	}
 	/**
-	 * Attach ACL Resource 
+	 * Attach ACL Resource
 	 */
 	private function attach_resourse(){
 		try {
@@ -138,6 +139,12 @@ class PermissionComponent extends Component  {
 					if($decision == 'allow') {
 						try {
 							$this->acl->allow($roleName, $resoucename);
+						}catch( Zend_Acl_Exception $e) {
+							throw new CakeException($e);
+						}
+					}elseif($decision == 'deny'){
+						try {
+							$this->acl->deny($roleName, $resoucename);
 						}catch( Zend_Acl_Exception $e) {
 							throw new CakeException($e);
 						}
@@ -180,10 +187,10 @@ class PermissionComponent extends Component  {
 		if($result == true) {
 			return true;
 		} else {
-			throw new AccessDeniedException();
+			throw new AccessDeniedException('access denied');
 		}
 	}
-	
+
 
 
 }
@@ -200,11 +207,16 @@ class AccessDeniedException extends CakeException {
  * @param string $message If no message is given 'Access denieds' will be the message
  * @param string $code Status code, defaults to 404
  */
+
+	protected $_messageTemplate = 'dont permission';
 	public function __construct($message = null, $code = 404) {
 		if (empty($message)) {
 			$message = 'Access Deneied';
 		}
-		Configure::write('Exception.renderer', 'AccessDeniedRenderer');
+		$renderer = Configure::read('Exception.renderer');
+		if($renderer === 'ExceptionRenderer'){
+			Configure::write('Exception.renderer', 'AccessDeniedRenderer');
+		}
 		parent::__construct($message, $code);
 	}
 }
@@ -213,12 +225,11 @@ class AccessDeniedRenderer extends ExceptionRenderer {
 	public function __construct(Exception $exception) {
 		parent::__construct($exception);
 	}
-	
+
 	public function AccessDenied(){
 		$this->controller->plugin = 'ZendAcl';
-		$this->controller->viewClass = 'ZendAcl.ZendAcl';
 		App::path('View', 'ZendAcl');
-		$this->_outputMessage('denied');
+		$this->_outputMessage('access_denied');
 	}
 
 }
